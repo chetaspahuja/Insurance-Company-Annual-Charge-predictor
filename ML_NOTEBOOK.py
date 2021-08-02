@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from sklearn import preprocessing
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
@@ -189,7 +190,7 @@ predicted = estimate_charges(non_smoker_df.age, w, b)
 rmse(targets, predicted)  # returns variance between actual and predicted data
 
 model = LinearRegression()
-#help(model.fit)
+# #help(model.fit)
 
 inputs = non_smoker_df[['age']]
 targets = non_smoker_df.charges
@@ -199,7 +200,64 @@ print('targes.shape :', targets.shape)
 model.fit(inputs, targets)
 model.predict(np.array([[23], [37], [61]]))
 
-# getting predictions for all dataset non_smoker_df
+predictions = model.predict(inputs)
+print(predictions)
+
+getting predictions for all dataset non_smoker_df
 
 predictions = model.predict(inputs)
 print(predictions)
+
+inputs = non_smoker_df[['age', 'bmi']]
+targets = non_smoker_df.charges
+
+model.fit(inputs, targets)
+predictions = model.predict(inputs)
+print(predictions)
+
+inputs = medical_df[['age', 'bmi', 'children']]
+targets = medical_df.charges
+
+model.fit(inputs, targets)
+predictions = model.predict(inputs)
+print(predictions)
+
+smoker_code = {'no': 0, 'yes': 1}
+medical_df['smoker_code'] = medical_df.smoker.map(smoker_code)
+
+# medical_df.charges.corr(smoker_code)
+# medical_df
+
+sex_codes = {'male': 1, 'female': 0}
+medical_df['sex_code'] = medical_df.sex.map(sex_codes)
+medical_df
+
+inputs = medical_df[['age', 'bmi', 'children', 'smoker_code', 'sex_code']]
+targets = medical_df.charges
+model = LinearRegression().fit(inputs, targets)
+predictions = model.predict(inputs)
+print(predictions)
+loss = rmse(targets, predictions)
+print(loss)
+
+# hot encoding the region columns and predicting the charges
+
+enc = preprocessing.OneHotEncoder()
+enc.fit(medical_df[['region']])
+# print(enc.categories_)
+
+one_hot = enc.transform(medical_df[['region']]).toarray()
+print(one_hot)
+
+medical_df[['northeast', 'northwest', 'southeast', 'southwest']] = one_hot
+medical_df
+
+inputs = medical_df[['age', 'bmi', 'children', 'smoker_code',
+                     'sex_code', 'northeast', 'northwest', 'southeast', 'southwest']]
+targets = medical_df.charges
+model = LinearRegression().fit(inputs, targets)
+predictions = model.predict(inputs)
+print("final predicted charges : ")
+print(predictions)
+loss = rmse(targets, predictions)
+print(loss)
